@@ -1,5 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import type { SaleItem } from './sale-item.model';
+import type { Customer } from './customer.model';
 
 export interface SaleAttributes {
   id: number;
@@ -52,6 +54,10 @@ export class Sale extends Model<SaleAttributes, SaleCreationAttributes> implemen
   declare public erpnextInvoiceId: string | null;
   declare public erpnextPaymentId: string | null;
   declare public notes: string | null;
+
+  // Association properties populated via Sequelize include
+  declare public items?: SaleItem[];
+  declare public customer?: Customer | null;
 
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;

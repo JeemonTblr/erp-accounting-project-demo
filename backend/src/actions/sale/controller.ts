@@ -90,7 +90,7 @@ export class SaleController {
 
         // Prepare ERPNext invoice items (ensure items have erpnextItemCode)
         const invoiceItems: Array<{ itemCode: string; qty: number; rate: number; description?: string }> = [];
-        for (const item of fullSale.items) {
+        for (const item of (fullSale.items || [])) {
           let itemCode = item.sku;
           const product = await Product.findByPk(item.productId);
           if (product) {
@@ -224,7 +224,7 @@ export class SaleController {
       // 1. Sync Invoice if missing
       if (!sale.erpnextInvoiceId) {
         const invoiceItems: Array<{ itemCode: string; qty: number; rate: number; description?: string }> = [];
-        for (const item of sale.items) {
+        for (const item of (sale.items || [])) {
           const itemCode = (item as unknown as { product?: { erpnextItemCode?: string } }).product?.erpnextItemCode || item.sku;
           invoiceItems.push({
             itemCode,

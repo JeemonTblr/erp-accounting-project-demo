@@ -1,5 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import type { PurchaseItem } from './purchase-item.model';
+import type { Supplier } from './supplier.model';
 
 export interface PurchaseAttributes {
   id: number;
@@ -36,6 +38,10 @@ export class Purchase extends Model<PurchaseAttributes, PurchaseCreationAttribut
   declare public erpnextPurchaseInvoiceId: string | null;
   declare public erpnextReceiptId: string | null;
   declare public notes: string | null;
+
+  // Association properties populated via Sequelize include
+  declare public items?: PurchaseItem[];
+  declare public supplier?: Supplier | null;
 
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;

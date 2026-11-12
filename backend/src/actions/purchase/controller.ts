@@ -81,7 +81,7 @@ export class PurchaseController {
 
         // Prepare ERPNext purchase invoice items
         const invoiceItems: Array<{ itemCode: string; qty: number; rate: number; description?: string }> = [];
-        for (const item of fullPurchase.items) {
+        for (const item of (fullPurchase.items || [])) {
           let itemCode = item.sku;
           const product = await Product.findByPk(item.productId);
           if (product) {
@@ -212,7 +212,7 @@ export class PurchaseController {
       // 1. Sync Purchase Invoice if missing
       if (!purchase.erpnextPurchaseInvoiceId) {
         const invoiceItems: Array<{ itemCode: string; qty: number; rate: number; description?: string }> = [];
-        for (const item of purchase.items) {
+        for (const item of (purchase.items || [])) {
           const itemCode = (item as unknown as { product?: { erpnextItemCode?: string } }).product?.erpnextItemCode || item.sku;
           invoiceItems.push({
             itemCode,
