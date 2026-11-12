@@ -1,0 +1,11 @@
+{
+  "name": "textile-erp-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Clothing & Textiles Shop Management System with ERPNext Accounting Integration",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev"
+  }
+}
+

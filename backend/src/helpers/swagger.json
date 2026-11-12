@@ -1,0 +1,478 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Clothing & Textiles Shop Management API",
+    "version": "1.0.0",
+    "description": "Full-stack Clothing & Textiles Shop Management System with ERPNext Accounting Module Integration via Frappe REST API.\n\nAll financial operations, ledger entries, and accounting reports are synchronized directly to ERPNext.",
+    "contact": {
+      "name": "Shop Admin Support",
+      "email": "admin@textileshop.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token obtained from POST /api/auth/login"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "admin@textileshop.com" },
+          "password": { "type": "string", "example": "Admin@123" }
+        }
+      },
+      "CustomerRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "example": "David Miller" },
+          "phone": { "type": "string", "example": "9845112233" },
+          "email": { "type": "string", "example": "david@example.com" },
+          "address": { "type": "string", "example": "12 MG Road, Kochi" },
+          "gstin": { "type": "string", "example": "32AAACD1234A1Z1" },
+          "customerType": { "type": "string", "enum": ["Individual", "Company"], "example": "Individual" }
+        }
+      },
+      "SupplierRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "example": "Kerala Garments Co" },
+          "phone": { "type": "string", "example": "9847012345" },
+          "email": { "type": "string", "example": "contact@keralagarments.com" },
+          "address": { "type": "string", "example": "Industrial Estate, Palakkad" },
+          "gstin": { "type": "string", "example": "32AABCK9988C1Z4" },
+          "supplierType": { "type": "string", "example": "Manufacturer" }
+        }
+      },
+      "ProductRequest": {
+        "type": "object",
+        "required": ["name", "sku", "categoryId", "purchasePrice", "sellingPrice"],
+        "properties": {
+          "name": { "type": "string", "example": "Kasavu Silk Saree" },
+          "sku": { "type": "string", "example": "SAR-KAS-01" },
+          "categoryId": { "type": "integer", "example": 4 },
+          "brand": { "type": "string", "example": "Kalyan Silks" },
+          "size": { "type": "string", "example": "Free Size" },
+          "colour": { "type": "string", "example": "Off-White & Gold" },
+          "fabricType": { "type": "string", "example": "Pure Silk" },
+          "purchasePrice": { "type": "number", "example": 2500 },
+          "sellingPrice": { "type": "number", "example": 4999 },
+          "gstRate": { "type": "number", "example": 5 },
+          "stockQuantity": { "type": "number", "example": 25 },
+          "reorderLevel": { "type": "number", "example": 5 }
+        }
+      },
+      "SaleItemRequest": {
+        "type": "object",
+        "required": ["productId", "quantity", "unitPrice"],
+        "properties": {
+          "productId": { "type": "integer", "example": 1 },
+          "quantity": { "type": "number", "example": 2 },
+          "unitPrice": { "type": "number", "example": 1299 }
+        }
+      },
+      "SaleRequest": {
+        "type": "object",
+        "required": ["items"],
+        "properties": {
+          "customerId": { "type": "integer", "example": 1 },
+          "paymentMethod": { "type": "string", "enum": ["CASH", "BANK", "UPI", "DEBIT_CARD", "CREDIT_CARD"], "example": "CASH" },
+          "paymentStatus": { "type": "string", "enum": ["PAID", "PARTIAL", "UNPAID"], "example": "PAID" },
+          "paidAmount": { "type": "number", "example": 2598 },
+          "notes": { "type": "string", "example": "Walk-in store sale" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/SaleItemRequest" } }
+        }
+      },
+      "PurchaseRequest": {
+        "type": "object",
+        "required": ["supplierId", "items"],
+        "properties": {
+          "supplierId": { "type": "integer", "example": 1 },
+          "paymentStatus": { "type": "string", "enum": ["PAID", "PARTIAL", "UNPAID"], "example": "PAID" },
+          "paidAmount": { "type": "number", "example": 3250 },
+          "paymentMethod": { "type": "string", "example": "BANK" },
+          "notes": { "type": "string", "example": "Batch restocking" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["productId", "quantity", "unitPrice"],
+              "properties": {
+                "productId": { "type": "integer", "example": 1 },
+                "quantity": { "type": "number", "example": 5 },
+                "unitPrice": { "type": "number", "example": 650 }
+              }
+            }
+          }
+        }
+      },
+      "ExpenseRequest": {
+        "type": "object",
+        "required": ["title", "category", "amount"],
+        "properties": {
+          "title": { "type": "string", "example": "Showroom Electricity Bill" },
+          "category": { "type": "string", "example": "Electricity" },
+          "amount": { "type": "number", "example": 1850 },
+          "paymentMethod": { "type": "string", "enum": ["CASH", "BANK", "UPI", "DEBIT_CARD", "CREDIT_CARD"], "example": "CASH" },
+          "description": { "type": "string", "example": "Monthly power utility bill" },
+          "referenceNumber": { "type": "string", "example": "EBILL-1029" }
+        }
+      },
+      "InventoryAdjustmentRequest": {
+        "type": "object",
+        "required": ["productId", "transactionType", "quantity"],
+        "properties": {
+          "productId": { "type": "integer", "example": 1 },
+          "transactionType": { "type": "string", "enum": ["STOCK_IN", "STOCK_OUT", "ADJUSTMENT", "DAMAGE", "RETURN"], "example": "DAMAGE" },
+          "quantity": { "type": "number", "example": 1 },
+          "notes": { "type": "string", "example": "Damaged during handling" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Diagnostics"],
+        "summary": "Application health check",
+        "responses": { "200": { "description": "API is healthy and online" } }
+      }
+    },
+    "/api/database/test": {
+      "get": {
+        "tags": ["Diagnostics"],
+        "summary": "MariaDB database connection test",
+        "responses": { "200": { "description": "Database connection details and latency" } }
+      }
+    },
+    "/api/database/tables": {
+      "get": {
+        "tags": ["Diagnostics"],
+        "summary": "Inspect all 14 MariaDB application tables",
+        "responses": { "200": { "description": "Table names and row counts" } }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate user & obtain JWT token",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": { "200": { "description": "Login successful, returns JWT token" } }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Unified dashboard metrics (MariaDB daily stats + ERPNext Accounting balances)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Cash, Bank, UPI balances, Revenue, P&L from ERPNext" } }
+      }
+    },
+    "/api/customers": {
+      "get": {
+        "tags": ["Customers"],
+        "summary": "List all customers",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of customers" } }
+      },
+      "post": {
+        "tags": ["Customers"],
+        "summary": "Create customer (auto-syncs to ERPNext Customer doctype)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerRequest" } } }
+        },
+        "responses": { "201": { "description": "Customer created and synced" } }
+      }
+    },
+    "/api/customers/{id}/sync": {
+      "post": {
+        "tags": ["Customers"],
+        "summary": "Manual or retry sync of customer to ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/suppliers": {
+      "get": {
+        "tags": ["Suppliers"],
+        "summary": "List all suppliers",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of suppliers" } }
+      },
+      "post": {
+        "tags": ["Suppliers"],
+        "summary": "Create supplier (auto-syncs to ERPNext Supplier doctype)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SupplierRequest" } } }
+        },
+        "responses": { "201": { "description": "Supplier created and synced" } }
+      }
+    },
+    "/api/suppliers/{id}/sync": {
+      "post": {
+        "tags": ["Suppliers"],
+        "summary": "Manual or retry sync of supplier to ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "List all products and stock levels",
+        "responses": { "200": { "description": "Array of products" } }
+      },
+      "post": {
+        "tags": ["Products"],
+        "summary": "Create product (auto-syncs to ERPNext Item doctype)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductRequest" } } }
+        },
+        "responses": { "201": { "description": "Product created and synced" } }
+      }
+    },
+    "/api/products/{id}/sync": {
+      "post": {
+        "tags": ["Products"],
+        "summary": "Manual or retry sync of product to ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/sales": {
+      "get": {
+        "tags": ["Sales"],
+        "summary": "List sales history",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of sales" } }
+      },
+      "post": {
+        "tags": ["Sales"],
+        "summary": "Create sale (deducts stock, auto-syncs Sales Invoice & Payment Entry in ERPNext)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SaleRequest" } } }
+        },
+        "responses": { "201": { "description": "Sale created and synced to ERPNext" } }
+      }
+    },
+    "/api/sales/{id}/sync": {
+      "post": {
+        "tags": ["Sales"],
+        "summary": "Manual / retry ERPNext sync for sales invoice & payment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/purchases": {
+      "get": {
+        "tags": ["Purchases"],
+        "summary": "List purchase orders",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of purchases" } }
+      },
+      "post": {
+        "tags": ["Purchases"],
+        "summary": "Record stock purchase (adds stock, auto-syncs Purchase Invoice & Payment in ERPNext)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PurchaseRequest" } } }
+        },
+        "responses": { "201": { "description": "Purchase created and synced to ERPNext" } }
+      }
+    },
+    "/api/purchases/{id}/sync": {
+      "post": {
+        "tags": ["Purchases"],
+        "summary": "Manual / retry ERPNext sync for purchase invoice & payment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/expenses": {
+      "get": {
+        "tags": ["Expenses"],
+        "summary": "List shop daily expenses",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of expenses" } }
+      },
+      "post": {
+        "tags": ["Expenses"],
+        "summary": "Record expense (auto-creates and submits Journal Entry in ERPNext)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExpenseRequest" } } }
+        },
+        "responses": { "201": { "description": "Expense recorded and synced" } }
+      }
+    },
+    "/api/expenses/{id}/sync": {
+      "post": {
+        "tags": ["Expenses"],
+        "summary": "Manual / retry ERPNext Journal Entry sync",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Sync success" } }
+      }
+    },
+    "/api/inventory": {
+      "get": {
+        "tags": ["Inventory"],
+        "summary": "Inventory movement transaction history",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of stock transactions" } }
+      },
+      "post": {
+        "tags": ["Inventory"],
+        "summary": "Record stock adjustment / damage (auto-creates Stock Entry in ERPNext)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InventoryAdjustmentRequest" } } }
+        },
+        "responses": { "201": { "description": "Transaction recorded and synced" } }
+      }
+    },
+    "/api/inventory/stock-balance/{productId}": {
+      "get": {
+        "tags": ["Inventory"],
+        "summary": "Query real-time stock balance from ERPNext warehouse",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "productId", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Local stock vs ERPNext warehouse stock" } }
+      }
+    },
+    "/api/erp-sync": {
+      "get": {
+        "tags": ["ERP Sync Audit"],
+        "summary": "List all ERPNext synchronization audit logs",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Array of sync logs with status" } }
+      }
+    },
+    "/api/reports/profit-and-loss": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Official Profit and Loss Statement from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "from_date", "in": "query", "schema": { "type": "string" } },
+          { "name": "to_date", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Official P&L from ERPNext Accounting" } }
+      }
+    },
+    "/api/reports/balance-sheet": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Official Balance Sheet from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "from_date", "in": "query", "schema": { "type": "string" } },
+          { "name": "to_date", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Official Balance Sheet from ERPNext" } }
+      }
+    },
+    "/api/reports/general-ledger": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Official General Ledger report from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "account", "in": "query", "schema": { "type": "string" } },
+          { "name": "from_date", "in": "query", "schema": { "type": "string" } },
+          { "name": "to_date", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "General Ledger entries from ERPNext" } }
+      }
+    },
+    "/api/reports/trial-balance": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Official Trial Balance from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Trial Balance from ERPNext" } }
+      }
+    },
+    "/api/reports/accounts-receivable": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Accounts Receivable (Customer Outstandings) from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Accounts Receivable report" } }
+      }
+    },
+    "/api/reports/accounts-payable": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Accounts Payable (Supplier Outstandings) from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Accounts Payable report" } }
+      }
+    },
+    "/api/reports/stock-balance": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Official Stock Balance Report from ERPNext",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Stock balance by warehouse" } }
+      }
+    },
+    "/api/reports/daily-sales-pnl": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Daily Sales and Profit & Loss Report (with COGS and Gross Margin %)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "from_date", "in": "query", "schema": { "type": "string", "example": "2026-11-01" } },
+          { "name": "to_date", "in": "query", "schema": { "type": "string", "example": "2026-11-11" } }
+        ],
+        "responses": { "200": { "description": "Daily breakdown of Sales, COGS, Gross Profit, Expenses, and Net Profit/Loss" } }
+      }
+    },
+    "/api/reports/daily-income-expenses": {
+      "get": {
+        "tags": ["ERPNext Financial Reports"],
+        "summary": "Daily Income and Expenses Report (Daily Cash Flow)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "from_date", "in": "query", "schema": { "type": "string", "example": "2026-11-01" } },
+          { "name": "to_date", "in": "query", "schema": { "type": "string", "example": "2026-11-11" } }
+        ],
+        "responses": { "200": { "description": "Daily breakdown of Cash Inflows, Outflows, and Net Cash Flow" } }
+      }
+    }
+  }
+}
+
