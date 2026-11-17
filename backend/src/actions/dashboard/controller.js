@@ -30,10 +30,17 @@ class DashboardController {
             monthlyRevenue: erpMetrics.totalRevenue,
             monthlyExpenses: erpMetrics.totalExpenses,
             monthlyProfitLoss: erpMetrics.netProfitLoss,
+            grossProfit: erpMetrics.grossProfit !== undefined ? erpMetrics.grossProfit : null,
+            varianceVsLastMonth: erpMetrics.varianceVsLastMonth !== undefined ? erpMetrics.varianceVsLastMonth : null,
+            monthlyCharts: erpMetrics.monthlyCharts || null,
+            recentDayBook: erpMetrics.recentDayBook || null,
             customerOutstanding: erpMetrics.customerOutstanding,
             supplierOutstanding: erpMetrics.supplierOutstanding,
             source: erpMetrics.source,
-            asOf: erpMetrics.asOf
+            asOf: erpMetrics.asOf,
+            isErpAccounting: AccountingAdapter.isErpAccounting(),
+            mode: AccountingAdapter.getActivePluginInfo().mode,
+            providerName: AccountingAdapter.getActivePluginInfo().name,
           }
         }
       });

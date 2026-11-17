@@ -181,17 +181,21 @@ class ManagerAccountingPlugin {
   // ─── Dashboard Metrics ───────────────────────────────────────────────────
 
   async getDashboardFinancialMetrics() {
-    const [cashBank, pnl, receivables, payables] = await Promise.allSettled([
+    const [cashBank, pnl, receivables, payables, charts, dayBook] = await Promise.allSettled([
       eaccClient.get("/api/cash-bank/summary"),
       eaccClient.get("/api/profit-loss/summary"),
       eaccClient.get("/api/outstanding/customers"),
       eaccClient.get("/api/outstanding/suppliers"),
+      eaccClient.get("/api/reports/charts"),
+      eaccClient.get("/api/reports/day-book"),
     ]);
 
-    const cb  = cashBank.status    === "fulfilled" ? (cashBank.value.data?.data    || {}) : {};
-    const pl  = pnl.status         === "fulfilled" ? (pnl.value.data?.data         || {}) : {};
-    const rec = receivables.status === "fulfilled" ? (receivables.value.data?.data || []) : [];
-    const pay = payables.status    === "fulfilled" ? (payables.value.data?.data    || []) : [];
+    const cb   = cashBank.status    === "fulfilled" ? (cashBank.value.data?.data    || {}) : {};
+    const pl   = pnl.status         === "fulfilled" ? (pnl.value.data?.data         || {}) : {};
+    const rec  = receivables.status === "fulfilled" ? (receivables.value.data?.data || []) : [];
+    const pay  = payables.status    === "fulfilled" ? (payables.value.data?.data    || []) : [];
+    const ch   = charts.status      === "fulfilled" ? (charts.value.data?.data      || []) : [];
+    const dbk  = dayBook.status     === "fulfilled" ? (dayBook.value.data?.data     || []) : [];
 
     const customerOutstanding = Array.isArray(rec)
       ? rec.reduce((sum, r) => sum + (r.amount || 0), 0)
@@ -207,8 +211,12 @@ class ManagerAccountingPlugin {
       totalRevenue:         pl.income        || 0,
       totalExpenses:        pl.expenses      || 0,
       netProfitLoss:        pl.netProfit     || 0,
+      grossProfit:          pl.grossProfit   || 0,
+      varianceVsLastMonth:  pl.varianceVsLastMonth || 0,
       customerOutstanding,
       supplierOutstanding,
+      monthlyCharts:        ch,
+      recentDayBook:        dbk.slice(0, 5),
       source:               "EAccounting Module (Manager)",
       asOf:                 new Date().toISOString(),
     };

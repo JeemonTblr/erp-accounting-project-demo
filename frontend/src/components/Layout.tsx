@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAccounting } from '../context/AccountingContext';
 import {
   LayoutDashboard,
   Shirt,
@@ -14,10 +15,18 @@ import {
   RefreshCw,
   LogOut,
   ExternalLink,
+  Settings,
+  FileText,
+  TrendingDown,
+  TrendingUp,
+  BookOpen,
+  Wallet,
+  Clock,
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { isErpAccounting } = useAccounting();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -25,8 +34,8 @@ export const Layout: React.FC = () => {
     navigate('/login');
   };
 
-  const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  const shopNavItems = [
+    { to: '/', label: 'Shop Dashboard', icon: LayoutDashboard },
     { to: '/sales', label: 'Sales & POS', icon: ShoppingCart },
     { to: '/purchases', label: 'Purchases', icon: Truck },
     { to: '/products', label: 'Products', icon: Shirt },
@@ -34,8 +43,26 @@ export const Layout: React.FC = () => {
     { to: '/expenses', label: 'Daily Expenses', icon: Receipt },
     { to: '/customers', label: 'Customers', icon: Users },
     { to: '/suppliers', label: 'Suppliers', icon: Building2 },
-    { to: '/reports', label: 'ERPNext Reports', icon: FileBarChart },
+    // Only display "ERPNext Reports" when ERP_Accounting is true
+    ...(isErpAccounting
+      ? [{ to: '/reports', label: 'ERPNext Reports', icon: FileBarChart }]
+      : []),
     { to: '/sync-logs', label: 'Sync Logs', icon: RefreshCw },
+  ];
+
+  // The 11 modules from Manager EAccounting plugin
+  const eaccountingNavItems = [
+    { to: '/eaccounting/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/eaccounting/foundation', label: 'Foundation', icon: Settings },
+    { to: '/eaccounting/invoices', label: 'Invoices', icon: FileText },
+    { to: '/eaccounting/receipts', label: 'Receipts', icon: Receipt },
+    { to: '/eaccounting/expenses', label: 'Expenses', icon: TrendingDown },
+    { to: '/eaccounting/purchases', label: 'Purchases', icon: Truck },
+    { to: '/eaccounting/pnl', label: 'P&L', icon: TrendingUp },
+    { to: '/eaccounting/balance', label: 'Balance Sheet', icon: BookOpen },
+    { to: '/eaccounting/cashbank', label: 'Cash & Bank', icon: Wallet },
+    { to: '/eaccounting/reports', label: 'Reports', icon: FileBarChart },
+    { to: '/eaccounting/outstanding', label: 'Outstanding', icon: Clock },
   ];
 
   return (
@@ -52,35 +79,79 @@ export const Layout: React.FC = () => {
                 </span>
                 Textile Shop
               </h1>
-              <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                ERPNext Connected
-              </p>
+              {isErpAccounting ? (
+                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  ERPNext Connected
+                </p>
+              ) : (
+                <p className="text-xs text-sky-400 mt-1 flex items-center gap-1.5 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                  EAccounting Active
+                </p>
+              )}
             </div>
           </div>
 
           {/* Nav links */}
-          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-180px)]">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === '/'}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
+          <nav className="p-3 space-y-4 overflow-y-auto max-h-[calc(100vh-190px)]">
+            {/* Shop Operations Section */}
+            <div className="space-y-1">
+              <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Operations
+              </div>
+              {shopNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      }`
+                    }
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+
+            {/* EAccounting Navigation (Visible only when ERP_Accounting=false, matching manager screenshot) */}
+            {!isErpAccounting && (
+              <div className="space-y-1 border-t border-slate-800/80 pt-3">
+                <div className="px-3 py-1 text-sm font-bold text-white flex items-center justify-between">
+                  <span className="tracking-tight text-white font-extrabold text-base">EAccounting</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-850 font-bold uppercase">
+                    Plugin
+                  </span>
+                </div>
+                {eaccountingNavItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          isActive
+                            ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                        }`
+                      }
+                    >
+                      <Icon className="w-4 h-4 text-sky-400" />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            )}
           </nav>
         </div>
 
@@ -123,4 +194,3 @@ export const Layout: React.FC = () => {
     </div>
   );
 };
-

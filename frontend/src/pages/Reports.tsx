@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useAccounting } from '../context/AccountingContext';
 import {
   FileBarChart,
   RefreshCw,
@@ -55,6 +56,7 @@ interface DailyIncomeExpenseRow {
 }
 
 export const Reports: React.FC = () => {
+  const { isErpAccounting, pluginInfo } = useAccounting();
   const [activeTab, setActiveTab] = useState<ReportTab>('monthly-pnl');
   const [columns, setColumns] = useState<ColumnDef[]>([]);
   const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
@@ -144,9 +146,15 @@ export const Reports: React.FC = () => {
           </h1>
           <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
             Centralized Accounting Engine:
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-xs border border-emerald-200">
-              ERPNext Accounting Single Source of Truth (Company: cubet)
-            </span>
+            {isErpAccounting ? (
+              <span className="font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded text-xs border border-emerald-200">
+                ERPNext Accounting Single Source of Truth (Company: cubet)
+              </span>
+            ) : (
+              <span className="font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded text-xs border border-sky-200">
+                Manager Accounting Module (EAccounting Single Source of Truth)
+              </span>
+            )}
           </p>
         </div>
 
@@ -177,6 +185,20 @@ export const Reports: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {!isErpAccounting && (
+        <div className="p-4 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+            <span>
+              <strong>Manager Accounting Mode Active (ERP_Accounting=false).</strong> ERPNext Reports are hidden from sidebar navigation. The reports below are fetched via Manager's EAccounting API engine.
+            </span>
+          </div>
+          <span className="font-mono text-[11px] text-sky-700 bg-sky-100/60 px-2 py-0.5 rounded">
+            API: http://localhost:5001
+          </span>
+        </div>
+      )}
 
       {/* Tabs navigation */}
       <div className="flex border-b border-slate-200 overflow-x-auto gap-1">

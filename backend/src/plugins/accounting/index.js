@@ -11,6 +11,8 @@
  * They never import a provider directly.
  */
 
+const fs = require("fs");
+const path = require("path");
 const { ErpNextAccountingPlugin }  = require("./erpnext-accounting.plugin");
 const { ManagerAccountingPlugin }  = require("./manager-accounting.plugin");
 
@@ -21,6 +23,19 @@ class AccountingAdapter {
 
   /** Returns true when ERPNext is the active provider. */
   static isErpAccounting() {
+    try {
+      const envPath = path.resolve(__dirname, "../../../.env");
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, "utf-8");
+        const match = envContent.match(/^\s*ERP_Accounting\s*=\s*([^\r\n#]+)/m);
+        if (match) {
+          const val = match[1].trim().toLowerCase();
+          return val === "true" || val === "1";
+        }
+      }
+    } catch (e) {
+      // fallback to process.env
+    }
     const val = (process.env.ERP_Accounting || "true").toString().trim().toLowerCase();
     return val === "true" || val === "1";
   }
@@ -32,12 +47,14 @@ class AccountingAdapter {
 
   /** Returns metadata about the active provider (for response labels). */
   static getActivePluginInfo() {
+    const isErp = AccountingAdapter.isErpAccounting();
     const p = AccountingAdapter.getActiveProvider();
     return {
-      name:    p.name,
-      source:  p.source,
-      baseUrl: p.baseUrl,
-      mode:    AccountingAdapter.isErpAccounting() ? "erpnext" : "eaccounting",
+      name:            p.name,
+      source:          p.source,
+      baseUrl:         p.baseUrl,
+      mode:            isErp ? "erpnext" : "eaccounting",
+      isErpAccounting: isErp,
     };
   }
 

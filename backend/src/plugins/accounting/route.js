@@ -67,5 +67,45 @@ pluginRoute.get("/info", (req, res) => {
   });
 });
 
+/**
+ * Universal Proxy Route — /api/plugins/accounting/proxy/*
+ * Forwards any request to the Manager EAccounting API server with required tenant headers.
+ */
+pluginRoute.all("/proxy/*", async (req, res, next) => {
+  try {
+    const targetPath = req.params[0] ? `/${req.params[0]}` : req.url.replace(/^\/proxy/, "");
+    const { ManagerAccountingPlugin } = require("./manager-accounting.plugin");
+    const plugin = new ManagerAccountingPlugin();
+    const axios = require("axios");
+
+    const targetUrl = `${plugin.baseUrl}${targetPath.startsWith("/api") ? targetPath : "/api" + targetPath}`;
+    const response = await axios({
+      method: req.method,
+      url: targetUrl,
+      data: req.body,
+      params: req.query,
+      headers: {
+        "Content-Type": "application/json",
+        "x-tenant-id": process.env.EACCOUNTING_TENANT_ID || "tenant-demo-01",
+        "x-host-app-id": process.env.EACCOUNTING_HOST_APP_ID || "textile-erp",
+        "x-user-id": req.user?.id ? String(req.user.id) : "1",
+        "x-role": req.user?.role || "admin",
+      },
+      timeout: 10000,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(502).json({
+        success: false,
+        message: `Failed to connect to Manager Accounting Module: ${error.message}`,
+      });
+    }
+  }
+});
+
 module.exports = pluginRoute;
 
