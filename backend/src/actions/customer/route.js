@@ -1,0 +1,12 @@
+const { Router } = require("express");
+const { CustomerController } = require("./controller");
+const { CustomerGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", authenticateToken, CustomerGetter.getAll);
+router.get("/:id", authenticateToken, CustomerGetter.getById);
+router.post("/", authenticateToken, CustomerController.add);
+router.post("/:id/sync", authenticateToken, CustomerController.syncToErp);
+router.put("/:id", authenticateToken, CustomerController.update);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), CustomerController.delete);
+module.exports = router;

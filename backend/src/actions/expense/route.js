@@ -1,0 +1,13 @@
+const { Router } = require("express");
+const { ExpenseController } = require("./controller");
+const { ExpenseGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", authenticateToken, ExpenseGetter.getAll);
+router.get("/summary/today", authenticateToken, ExpenseGetter.getTodaySummary);
+router.get("/:id", authenticateToken, ExpenseGetter.getById);
+router.post("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ExpenseController.add);
+router.post("/:id/sync", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ExpenseController.syncToErp);
+router.put("/:id", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ExpenseController.update);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), ExpenseController.delete);
+module.exports = router;

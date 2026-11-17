@@ -1,0 +1,11 @@
+const { Router } = require("express");
+const { CategoryController } = require("./controller");
+const { CategoryGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", CategoryGetter.getAll);
+router.get("/:id", CategoryGetter.getById);
+router.post("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), CategoryController.add);
+router.put("/:id", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), CategoryController.update);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), CategoryController.delete);
+module.exports = router;

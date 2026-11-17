@@ -1,0 +1,16 @@
+const { Router } = require("express");
+const { UserController } = require("./controller");
+const { UserGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const { validateBody } = require("../../helpers/middleware/validation.middleware");
+const { registerSchema,   loginSchema,   changePasswordSchema } = require("../../helpers/validations/auth.validation");
+const router = Router();
+router.post("/login", validateBody(loginSchema), UserController.login);
+router.post("/", validateBody(registerSchema), UserController.add);
+router.get("/me", authenticateToken, UserGetter.getMe);
+router.get("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), UserGetter.getAll);
+router.get("/:id", authenticateToken, UserGetter.getById);
+router.put("/:id", authenticateToken, requireRoles(["ADMIN"]), UserController.update);
+router.post("/change-password", authenticateToken, validateBody(changePasswordSchema), UserController.changePassword);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), UserController.delete);
+module.exports = router;

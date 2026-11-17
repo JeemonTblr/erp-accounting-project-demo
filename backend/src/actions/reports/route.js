@@ -1,0 +1,14 @@
+const { Router } = require("express");
+const { ReportsController } = require("./controller");
+const { authenticateToken } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/profit-and-loss", authenticateToken, ReportsController.getProfitAndLoss);
+router.get("/balance-sheet", authenticateToken, ReportsController.getBalanceSheet);
+router.get("/general-ledger", authenticateToken, ReportsController.getGeneralLedger);
+router.get("/trial-balance", authenticateToken, ReportsController.getTrialBalance);
+router.get("/accounts-receivable", authenticateToken, ReportsController.getAccountsReceivable);
+router.get("/accounts-payable", authenticateToken, ReportsController.getAccountsPayable);
+router.get("/stock-balance", authenticateToken, ReportsController.getStockBalanceReport);
+router.get("/daily-sales-pnl", authenticateToken, ReportsController.getDailySalesAndPnL);
+router.get("/daily-income-expenses", authenticateToken, ReportsController.getDailyIncomeAndExpenses);
+module.exports = router;

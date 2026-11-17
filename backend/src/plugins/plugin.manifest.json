@@ -1,0 +1,47 @@
+{
+  "name": "eaccounting",
+  "version": "1.0.0",
+  "moduleType": "accounting",
+  "description": "Pluggable accounting engine. Supports ERPNext and EAccounting module as interchangeable providers.",
+  "baseRoute": "/api/plugins/accounting",
+  "switchEnvKey": "ERP_Accounting",
+  "providers": {
+    "erpnext": {
+      "label": "ERPNext Accounting Module",
+      "envValue": "True",
+      "baseUrl": "http://127.0.0.1:8000"
+    },
+    "eaccounting": {
+      "label": "EAccounting Module (Manager)",
+      "envValue": "False",
+      "baseUrlEnvKey": "EACCOUNTING_BASE_URL"
+    }
+  },
+  "routes": [
+    "GET /api/plugins/accounting/status",
+    "GET /api/plugins/accounting/manifest",
+    "GET /api/plugins/accounting/manager-modules",
+    "GET /api/plugins/accounting/info"
+  ],
+  "permissions": [
+    "accounting.read",
+    "accounting.write",
+    "accounting.admin"
+  ],
+  "requiredHeaders": {
+    "eaccounting": [
+      "x-tenant-id",
+      "x-host-app-id",
+      "x-user-id",
+      "x-role"
+    ]
+  },
+  "syncEndpoints": {
+    "sale":     "POST /api/daily-income/invoices",
+    "purchase": "POST /api/purchase-management/bills",
+    "expense":  "POST /api/daily-expenses/entries"
+  },
+  "schemaVersion": "1.0",
+  "webhookEvents": []
+}
+

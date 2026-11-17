@@ -1,0 +1,12 @@
+const { Router } = require("express");
+const { InventoryController } = require("./controller");
+const { InventoryGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", authenticateToken, InventoryGetter.getAll);
+router.get("/stock-balance/:productId", authenticateToken, InventoryController.getErpStockBalance);
+router.get("/:id", authenticateToken, InventoryGetter.getById);
+router.post("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), InventoryController.add);
+router.post("/:id/sync", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), InventoryController.syncToErp);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), InventoryController.delete);
+module.exports = router;

@@ -1,0 +1,11 @@
+const { Router } = require("express");
+const { ErpSyncController } = require("./controller");
+const { ErpSyncGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ErpSyncGetter.getAll);
+router.get("/pending", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ErpSyncGetter.getPending);
+router.get("/:id", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), ErpSyncGetter.getById);
+router.post("/", authenticateToken, requireRoles(["ADMIN"]), ErpSyncController.add);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), ErpSyncController.delete);
+module.exports = router;

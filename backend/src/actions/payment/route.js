@@ -1,0 +1,10 @@
+const { Router } = require("express");
+const { PaymentController } = require("./controller");
+const { PaymentGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/", authenticateToken, PaymentGetter.getAll);
+router.get("/:id", authenticateToken, PaymentGetter.getById);
+router.post("/", authenticateToken, PaymentController.add);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), PaymentController.delete);
+module.exports = router;

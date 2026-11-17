@@ -1,13 +1,13 @@
 {
   "name": "clothing-erp-backend",
   "version": "1.0.0",
-  "description": "Clothing & Textiles Shop Management Backend with MariaDB & ERPNext Accounting Integration",
-  "main": "dist/server.js",
+  "description": "Clothing & Textiles Shop Management Backend with Node.js, Express.js, MariaDB & ERPNext Accounting Integration",
+  "main": "src/server.js",
   "scripts": {
-    "build": "rimraf dist && tsc",
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "db:sync": "ts-node-dev --transpile-only src/helpers/sync-db.ts"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:sync": "node src/helpers/sync-db.js",
+    "seed": "node src/scripts/seed-dummy-data.js"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -25,20 +25,12 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/morgan": "^1.9.9",
-    "@types/node": "^22.10.1",
-    "@types/swagger-ui-express": "^4.1.8",
-    "rimraf": "^6.0.1",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.2"
+    "nodemon": "^3.1.14"
   },
   "keywords": [
     "nodejs",
-    "typescript",
+    "javascript",
+    "express",
     "mariadb",
     "sequelize",
     "erpnext",

@@ -1,0 +1,12 @@
+const { Router } = require("express");
+const { PurchaseController } = require("./controller");
+const { PurchaseGetter } = require("./getter");
+const { authenticateToken, requireRoles } = require("../../helpers/middleware/auth.middleware");
+const router = Router();
+router.get("/summary/today", authenticateToken, PurchaseGetter.getTodaySummary);
+router.get("/", authenticateToken, PurchaseGetter.getAll);
+router.get("/:id", authenticateToken, PurchaseGetter.getById);
+router.post("/", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), PurchaseController.add);
+router.post("/:id/sync", authenticateToken, requireRoles(["ADMIN", "MANAGER"]), PurchaseController.syncToErp);
+router.delete("/:id", authenticateToken, requireRoles(["ADMIN"]), PurchaseController.delete);
+module.exports = router;
