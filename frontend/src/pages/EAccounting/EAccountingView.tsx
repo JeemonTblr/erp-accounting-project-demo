@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Download,
   AlertCircle,
+  CheckCircle2,
+  Database,
 } from 'lucide-react';
 
 export type EAccTab =
@@ -51,6 +53,26 @@ export const EAccountingView: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [syncingCrm, setSyncingCrm] = useState(false);
+  const [crmSyncMessage, setCrmSyncMessage] = useState<string | null>(null);
+
+  const handleSyncCrm = async () => {
+    try {
+      setSyncingCrm(true);
+      setCrmSyncMessage(null);
+      const res = await eaccountingApi.crm.syncAll();
+      if (res && res.success) {
+        setCrmSyncMessage(`Successfully synced ${res.totalSynced} operational CRM records to EAccounting!`);
+      } else {
+        setCrmSyncMessage(`Sync completed with ${res?.syncedCounts?.errors?.length || 0} notices.`);
+      }
+      loadModuleData(activeTab);
+    } catch (e: any) {
+      setCrmSyncMessage(`Sync failed: ${e.message}`);
+    } finally {
+      setSyncingCrm(false);
+    }
+  };
 
   // Module state containers
   const [incomeSummary, setIncomeSummary] = useState<any>(null);
@@ -246,15 +268,42 @@ export const EAccountingView: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => loadModuleData(activeTab)}
-          disabled={loading}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-all"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-600' : ''}`} />
-          <span>Refresh Module</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSyncCrm}
+            disabled={syncingCrm}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>{syncingCrm ? 'Syncing CRM...' : 'Sync CRM to Accounting'}</span>
+          </button>
+
+          <button
+            onClick={() => loadModuleData(activeTab)}
+            disabled={loading}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-all"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-600' : ''}`} />
+            <span>Refresh Module</span>
+          </button>
+        </div>
       </div>
+
+      {/* CRM Sync Notification */}
+      {crmSyncMessage && (
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+            <span className="font-medium">{crmSyncMessage}</span>
+          </div>
+          <button
+            onClick={() => setCrmSyncMessage(null)}
+            className="text-emerald-700 hover:text-emerald-900 font-bold ml-4"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Module Horizontal Pill Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100">

@@ -161,5 +161,20 @@ export const eaccountingApi = {
       return res.data?.data || [];
     },
   },
+
+  crm: {
+    getAll: async () => {
+      const res = await api.get('/crm/all');
+      return res.data?.data;
+    },
+    getSyncStatus: async () => {
+      const res = await api.get('/crm/sync-status');
+      return res.data;
+    },
+    syncAll: async () => {
+      const res = await api.post('/crm/sync-all');
+      return res.data;
+    },
+  },
 };
 
