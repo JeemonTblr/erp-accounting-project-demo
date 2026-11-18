@@ -43,21 +43,31 @@ These features exist in ERPNext, but are **100% missing** from the Manager Plugi
 * ERPNext does this automatically every time you submit a sale, purchase, or payment.
 * The Manager Plugin has **no double-entry code**. It does not create debit/credit ledger lines.
 
+
+
 ### 2. No Write / Sync APIs (All return 404 Error)
 * **Sales sync**: Cannot receive sales from our shop (`POST /api/daily-income/invoices` is 404).
 * **Purchase sync**: Cannot receive bills from suppliers (`POST /api/purchase-management/bills` is 404).
 * **Expense sync**: Cannot receive daily shop expenses (`POST /api/daily-expenses/entries` is 404).
 * **Batch sync**: Cannot bulk-sync data from our CRM (`POST /api/v1/{entity}/sync` is 404).
 
+
+
 ### 3. No Customer Payment or Debt Reduction
 * When a customer buys on credit and later pays cash or UPI:
   * In ERPNext: You record a payment, and the customer's balance decreases to ₹0.
   * In Manager Plugin: There is no payment API. The customer will **forever show as owing money**.
 
+
+
+
 ### 4. No Supplier Payment Recording
 * When we pay our textile suppliers:
   * In ERPNext: The supplier's pending bill is cleared.
   * In Manager Plugin: There is no payment API. The bill will **forever show as unpaid**.
+
+
+
 
 ### 5. No GST Tax Engine
 * In India, textile businesses must track GST:
@@ -68,15 +78,24 @@ These features exist in ERPNext, but are **100% missing** from the Manager Plugi
 * ERPNext tracks all of these in separate tax accounts.
 * The Manager Plugin has **no GST calculation, no separate tax ledgers, and cannot generate GSTR-1 or GSTR-3B reports**.
 
+
+
+
 ### 6. No Stock / Inventory Accounting
 * When you sell shirts or fabric, the accounting system should calculate **Cost of Goods Sold (COGS)** and reduce the inventory asset value on the balance sheet.
 * ERPNext does this automatically.
 * The Manager Plugin explicitly says: `"Stock balance not available"`. It does not track stock value in accounting at all.
 
+
+
+
 ### 7. No Sales Returns or Credit Notes
 * If a customer returns a dress or shirt:
   * In ERPNext: A Credit Note is made to cancel the sale and return the customer's money.
   * In Manager Plugin: Returns cannot be handled.
+
+
+
 
 ### 8. No Opening Balance Migration
 * When switching software, you need to bring over your past balances (bank balance, cash on hand, unpaid customer bills).
@@ -84,27 +103,40 @@ These features exist in ERPNext, but are **100% missing** from the Manager Plugi
 
 ---
 
+
+
+
 ## 4. PART 2: What is INCLUDED, but NEEDS IMPROVEMENT?
 ### (Things that exist in the plugin right now, but are broken or risky)
+
 
 ### 1. The Dashboard Shows Fake / Demo Data
 * **The Problem**: The EAccounting screen displays numbers like ₹3,45,000 Cash and ₹12,40,000 Revenue.
 * **The Truth**: Because all sync calls fail with 404, these numbers are hardcoded demo data from the manager's server. They are **not your real shop numbers**.
 * **What needs improvement**: The screen should show a warning message like `"Demo Mode - Not Connected to Shop Data"` so people don't think it's real.
 
+
+
 ### 2. Errors are Hidden (Silent Failure)
 * **The Problem**: When a cashier completes a sale, the ERP tries to sync to the plugin. The plugin fails (404), but the cashier still gets a green "Sale Saved" message.
 * **The Truth**: The sale is saved in MariaDB, but the accounting system never received it.
 * **What needs improvement**: The system needs an alert or icon showing that the sale is pending sync.
+
+
 
 ### 3. Missing Data is Hidden with Zeroes
 * **The Problem**: In the code (`manager-accounting.plugin.js`), whenever data is missing, it replaces it with `0` (for example: `d.income || 0`).
 * **The Truth**: If the server crashes or fails to calculate something, it just displays ₹0.00 instead of showing an error.
 * **What needs improvement**: It should show an error message instead of pretending the balance is ₹0.
 
+
+
+
 ### 4. Chart of Accounts is Static (Cannot be changed)
 * **The Problem**: The list of accounts (Cash, Bank, Revenue, Expense) is fixed.
 * **What needs improvement**: You should be able to add new accounts (like adding a second bank account or petty cash account).
+
+
 
 ### 5. Security is Weak
 * **The Problem**: Anyone on the local network can call the plugin server because it only checks simple text headers (`x-tenant-id`, `x-role: admin`).
@@ -124,12 +156,18 @@ The plugin server needs standard accounting tables:
 * **General Ledger (GL Entries) Table**: Stores every single Debit and Credit entry.
 * **Tax Table**: Stores CGST, SGST, and IGST amounts separately.
 
+
+
+
 ### Step 2: Build the Missing Write APIs
 The plugin team must build and deploy these 4 backend endpoints:
 * `POST /api/daily-income/invoices` $\rightarrow$ To receive sales from our shop.
 * `POST /api/daily-income/receipts` $\rightarrow$ To receive customer payments and clear their debt.
 * `POST /api/purchase-management/bills` $\rightarrow$ To receive supplier bills.
 * `POST /api/daily-expenses/entries` $\rightarrow$ To receive daily shop expenses (tea, rent, electricity).
+
+
+
 
 ### Step 3: Implement Double-Entry Rules
 When an invoice is received, the plugin must automatically write balancing entries:
@@ -140,12 +178,17 @@ When an invoice is received, the plugin must automatically write balancing entri
   * Credit: Output SGST = ₹25
   * Total Debits (₹1,050) = Total Credits (₹1,050) $\rightarrow$ Balanced!
 
+
+
+
 ### Step 4: Add GST Tax Reporting
 * Calculate 2.5% CGST + 2.5% SGST on local sales.
 * Store input tax paid on cloth/fabric purchases.
 * Provide monthly totals so the accountant can file GSTR-3B.
 
 ---
+
+
 
 ## 6. Side-by-Side Comparison (Simple Table)
 
@@ -163,6 +206,9 @@ When an invoice is received, the plugin must automatically write balancing entri
 | **UI Dashboard & Look** | Basic | Very clean & modern | Keep UI as it is |
 
 ---
+
+
+
 
 ## 7. What Should We Do Right Now? (Final Recommendation)
 
